@@ -41,10 +41,10 @@ trait HasRoles
     {
         return $this->morphToMany(
             config('permission.models.role'),
-            'model',
+            config('permission.column_names.model_has_roles_relation_name'),
             config('permission.table_names.model_has_roles'),
             config('permission.column_names.model_morph_key'),
-            'role_id'
+            config('permission.column_names.model_has_roles_role_id_key')
         );
     }
 
@@ -178,19 +178,22 @@ trait HasRoles
      */
     public function hasRole($roles, string $guard = null): bool
     {
+        $name = config('permission.column_names.roles_name_key');
+        $guardName = config('permission.column_names.roles_guard_name_key');
+
         if (is_string($roles) && false !== strpos($roles, '|')) {
             $roles = $this->convertPipeToArray($roles);
         }
 
         if (is_string($roles)) {
             return $guard
-                ? $this->roles->where('guard_name', $guard)->contains('name', $roles)
-                : $this->roles->contains('name', $roles);
+                ? $this->roles->where($guardName, $guard)->contains($name, $roles)
+                : $this->roles->contains($name, $roles);
         }
 
         if (is_int($roles)) {
             return $guard
-                ? $this->roles->where('guard_name', $guard)->contains('id', $roles)
+                ? $this->roles->where($guardName, $guard)->contains('id', $roles)
                 : $this->roles->contains('id', $roles);
         }
 
@@ -208,7 +211,7 @@ trait HasRoles
             return false;
         }
 
-        return $roles->intersect($guard ? $this->roles->where('guard_name', $guard) : $this->roles)->isNotEmpty();
+        return $roles->intersect($guard ? $this->roles->where($guardName, $guard) : $this->roles)->isNotEmpty();
     }
 
     /**
@@ -232,14 +235,17 @@ trait HasRoles
      */
     public function hasAllRoles($roles, string $guard = null): bool
     {
+        $name = config('permission.column_names.roles_name_key');
+        $guardName = config('permission.column_names.roles_guard_name_key');
+
         if (is_string($roles) && false !== strpos($roles, '|')) {
             $roles = $this->convertPipeToArray($roles);
         }
 
         if (is_string($roles)) {
             return $guard
-                ? $this->roles->where('guard_name', $guard)->contains('name', $roles)
-                : $this->roles->contains('name', $roles);
+                ? $this->roles->where($guardName, $guard)->contains($name, $roles)
+                : $this->roles->contains($name, $roles);
         }
 
         if ($roles instanceof Role) {
@@ -252,7 +258,7 @@ trait HasRoles
 
         return $roles->intersect(
             $guard
-                ? $this->roles->where('guard_name', $guard)->pluck('name')
+                ? $this->roles->where($guardName, $guard)->pluck($name)
                 : $this->getRoleNames()) == $roles;
     }
 
@@ -266,7 +272,7 @@ trait HasRoles
 
     public function getRoleNames(): Collection
     {
-        return $this->roles->pluck('name');
+        return $this->roles->pluck(config('permission.column_names.roles_name_key'));
     }
 
     protected function getStoredRole($role): Role

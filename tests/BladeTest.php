@@ -13,11 +13,11 @@ class BladeTest extends TestCase
 
         $roleModel = app(Role::class);
 
-        $roleModel->create(['name' => 'member']);
-        $roleModel->create(['name' => 'writer']);
-        $roleModel->create(['name' => 'intern']);
-        $roleModel->create(['name' => 'super-admin', 'guard_name' => 'admin']);
-        $roleModel->create(['name' => 'moderator', 'guard_name' => 'admin']);
+        $roleModel->create([$this->rolesNameAttribute => 'member']);
+        $roleModel->create([$this->rolesNameAttribute => 'writer']);
+        $roleModel->create([$this->rolesNameAttribute => 'intern']);
+        $roleModel->create([$this->rolesNameAttribute => 'super-admin', $this->rolesGuardNameAttribute => 'admin']);
+        $roleModel->create([$this->rolesNameAttribute => 'moderator', $this->rolesGuardNameAttribute => 'admin']);
     }
 
     /** @test */

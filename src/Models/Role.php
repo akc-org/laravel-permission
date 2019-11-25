@@ -20,9 +20,17 @@ class Role extends Model implements RoleContract
 
     protected $guarded = ['id'];
 
+    private $nameAttribute;
+
+    private $guardNameAttribute;
+
     public function __construct(array $attributes = [])
     {
-        $attributes['guard_name'] = $attributes['guard_name'] ?? config('auth.defaults.guard');
+        $this->timestamps = config('permission.models.timestamps');
+        $this->nameAttribute = config('permission.column_names.roles_name_key');
+        $this->guardNameAttribute = config('permission.column_names.roles_guard_name_key');
+
+        $attributes[$this->guardNameAttribute] = $attributes[$this->guardNameAttribute] ?? config('auth.defaults.guard');
 
         parent::__construct($attributes);
 
@@ -31,10 +39,17 @@ class Role extends Model implements RoleContract
 
     public static function create(array $attributes = [])
     {
-        $attributes['guard_name'] = $attributes['guard_name'] ?? Guard::getDefaultName(static::class);
+        $nameAttribute = config('permission.column_names.roles_name_key');
+        $guardNameAttribute = config('permission.column_names.roles_guard_name_key');
 
-        if (static::where('name', $attributes['name'])->where('guard_name', $attributes['guard_name'])->first()) {
-            throw RoleAlreadyExists::create($attributes['name'], $attributes['guard_name']);
+        $attributes[$guardNameAttribute] = $attributes[$guardNameAttribute] ?? Guard::getDefaultName(static::class);
+
+        if (
+            static::where($nameAttribute, $attributes[$nameAttribute])
+            ->where($guardNameAttribute, $attributes[$guardNameAttribute]
+            )->first()
+        ) {
+            throw RoleAlreadyExists::create($attributes[$nameAttribute], $attributes[$guardNameAttribute]);
         }
 
         return static::query()->create($attributes);
@@ -48,8 +63,8 @@ class Role extends Model implements RoleContract
         return $this->belongsToMany(
             config('permission.models.permission'),
             config('permission.table_names.role_has_permissions'),
-            'role_id',
-            'permission_id'
+            config('permission.column_names.role_has_permissions_role_id_key'),
+            config('permission.column_names.role_has_permissions_permission_id_key')
         );
     }
 
@@ -59,10 +74,10 @@ class Role extends Model implements RoleContract
     public function users(): MorphToMany
     {
         return $this->morphedByMany(
-            getModelForGuard($this->attributes['guard_name']),
-            'model',
+            getModelForGuard($this->getGuardNameAttribute()),
+            config('permission.column_names.model_has_roles_relation_name'),
             config('permission.table_names.model_has_roles'),
-            'role_id',
+            config('permission.column_names.model_has_roles_role_id_key'),
             config('permission.column_names.model_morph_key')
         );
     }
@@ -79,9 +94,12 @@ class Role extends Model implements RoleContract
      */
     public static function findByName(string $name, $guardName = null): RoleContract
     {
+        $nameAttribute = config('permission.column_names.roles_name_key');
+        $guardNameAttribute = config('permission.column_names.roles_guard_name_key');
+
         $guardName = $guardName ?? Guard::getDefaultName(static::class);
 
-        $role = static::where('name', $name)->where('guard_name', $guardName)->first();
+        $role = static::where($nameAttribute, $name)->where($guardNameAttribute, $guardName)->first();
 
         if (! $role) {
             throw RoleDoesNotExist::named($name);
@@ -92,9 +110,11 @@ class Role extends Model implements RoleContract
 
     public static function findById(int $id, $guardName = null): RoleContract
     {
+        $guardNameAttribute = config('permission.column_names.roles_guard_name_key');
+
         $guardName = $guardName ?? Guard::getDefaultName(static::class);
 
-        $role = static::where('id', $id)->where('guard_name', $guardName)->first();
+        $role = static::where('id', $id)->where($guardNameAttribute, $guardName)->first();
 
         if (! $role) {
             throw RoleDoesNotExist::withId($id);
@@ -113,12 +133,15 @@ class Role extends Model implements RoleContract
      */
     public static function findOrCreate(string $name, $guardName = null): RoleContract
     {
+        $nameAttribute = config('permission.column_names.roles_name_key');
+        $guardNameAttribute = config('permission.column_names.roles_guard_name_key');
+
         $guardName = $guardName ?? Guard::getDefaultName(static::class);
 
-        $role = static::where('name', $name)->where('guard_name', $guardName)->first();
+        $role = static::where($nameAttribute, $name)->where($guardNameAttribute, $guardName)->first();
 
         if (! $role) {
-            return static::query()->create(['name' => $name, 'guard_name' => $guardName]);
+            return static::query()->create([$nameAttribute => $name, $guardNameAttribute => $guardName]);
         }
 
         return $role;
@@ -150,5 +173,45 @@ class Role extends Model implements RoleContract
         }
 
         return $this->permissions->contains('id', $permission->id);
+    }
+
+    /**
+     * Name attribute getter.
+     *
+     * @return string
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->attributes[$this->nameAttribute];
+    }
+
+    /**
+     * Name attribute setter.
+     *
+     * @param $value string
+     */
+    public function setNameAttribute($value): void
+    {
+        $this->attributes[$this->nameAttribute] = $value;
+    }
+
+    /**
+     * Guard name attribute getter.
+     *
+     * @return string
+     */
+    public function getGuardNameAttribute(): string
+    {
+        return $this->attributes[$this->guardNameAttribute];
+    }
+
+    /**
+     * Guard name attribute setter.
+     *
+     * @param $value string
+     */
+    public function setGuardNameAttribute($value): void
+    {
+        $this->attributes[$this->guardNameAttribute] = $value;
     }
 }

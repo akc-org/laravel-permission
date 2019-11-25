@@ -390,7 +390,10 @@ class HasRolesTest extends TestCase
         $user3 = Admin::create(['email' => 'user1@test.com']);
         $user4 = Admin::create(['email' => 'user1@test.com']);
         $user5 = Admin::create(['email' => 'user2@test.com']);
-        $testAdminRole2 = app(Role::class)->create(['name' => 'testAdminRole2', 'guard_name' => 'admin']);
+        $testAdminRole2 = app(Role::class)->create([
+            $this->rolesNameAttribute => 'testAdminRole2',
+            $this->rolesGuardNameAttribute => 'admin'
+        ]);
         $user3->assignRole($this->testAdminRole);
         $user4->assignRole($this->testAdminRole);
         $user5->assignRole($testAdminRole2);
@@ -426,7 +429,7 @@ class HasRolesTest extends TestCase
     {
         $roleModel = app(Role::class);
 
-        $roleModel->create(['name' => 'second role']);
+        $roleModel->create([$this->rolesNameAttribute => 'second role']);
 
         $this->assertFalse($this->testUser->hasRole($roleModel->all()));
 
@@ -460,7 +463,7 @@ class HasRolesTest extends TestCase
 
         $this->assertFalse($this->testUser->hasAllRoles($roleModel->all()));
 
-        $roleModel->create(['name' => 'second role']);
+        $roleModel->create([$this->rolesNameAttribute => 'second role']);
 
         $this->testUser->assignRole($this->testUserRole);
 

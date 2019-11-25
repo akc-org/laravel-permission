@@ -26,6 +26,11 @@ return [
 
         'role' => Spatie\Permission\Models\Role::class,
 
+        /*
+         * Enable or disable model timestamps.
+         */
+        'timestamps' => true
+
     ],
 
     'table_names' => [
@@ -82,6 +87,30 @@ return [
          */
 
         'model_morph_key' => 'model_id',
+
+        /*
+         * Change this if you want to name the model columns other than defaults.
+         */
+
+        'permissions_name_key' => 'name',
+
+        'permissions_guard_name_key' => 'guard_name',
+
+        'roles_name_key' => 'name',
+
+        'roles_guard_name_key' => 'guard_name',
+
+        'model_has_permissions_permission_id_key' => 'permission_id',
+
+        'model_has_permissions_relation_name' => 'model',
+
+        'model_has_roles_role_id_key' => 'role_id',
+
+        'model_has_roles_relation_name' => 'model',
+
+        'role_has_permissions_permission_id_key' => 'permission_id',
+
+        'role_has_permissions_role_id_key' => 'role_id',
     ],
 
     /*

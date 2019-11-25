@@ -362,7 +362,7 @@ class HasPermissionsTest extends TestCase
 
         $this->assertEquals(
             collect(['edit-articles', 'edit-news']),
-            $this->testUser->getPermissionsViaRoles()->pluck('name')
+            $this->testUser->getPermissionsViaRoles()->pluck($this->permissionsNameAttribute)
         );
     }
 
@@ -376,7 +376,7 @@ class HasPermissionsTest extends TestCase
 
         $this->assertEquals(
             collect(['edit-articles', 'edit-news']),
-            $this->testUser->getAllPermissions()->pluck('name')
+            $this->testUser->getAllPermissions()->pluck($this->permissionsNameAttribute)
         );
     }
 
@@ -399,7 +399,7 @@ class HasPermissionsTest extends TestCase
     {
         $this->testUser->givePermissionTo('edit-news');
 
-        $ids = app(Permission::class)::whereIn('name', ['edit-articles', 'edit-blog'])->pluck('id');
+        $ids = app(Permission::class)::whereIn($this->permissionsNameAttribute, ['edit-articles', 'edit-blog'])->pluck('id');
 
         $this->testUser->syncPermissions($ids);
 
@@ -415,7 +415,7 @@ class HasPermissionsTest extends TestCase
     {
         $this->testUser->givePermissionTo('edit-news');
 
-        $ids = app(Permission::class)::whereIn('name', ['edit-articles', 'edit-blog'])->pluck('id');
+        $ids = app(Permission::class)::whereIn($this->permissionsNameAttribute, ['edit-articles', 'edit-blog'])->pluck('id');
 
         $ids->push(null);
 

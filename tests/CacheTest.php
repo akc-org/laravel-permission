@@ -51,7 +51,7 @@ class CacheTest extends TestCase
     /** @test */
     public function it_flushes_the_cache_when_creating_a_permission()
     {
-        app(Permission::class)->create(['name' => 'new']);
+        app(Permission::class)->create([$this->permissionsNameAttribute => 'new']);
 
         $this->resetQueryCount();
 
@@ -63,7 +63,7 @@ class CacheTest extends TestCase
     /** @test */
     public function it_flushes_the_cache_when_updating_a_permission()
     {
-        $permission = app(Permission::class)->create(['name' => 'new']);
+        $permission = app(Permission::class)->create([$this->permissionsNameAttribute => 'new']);
 
         $permission->name = 'other name';
         $permission->save();
@@ -78,7 +78,7 @@ class CacheTest extends TestCase
     /** @test */
     public function it_flushes_the_cache_when_creating_a_role()
     {
-        app(Role::class)->create(['name' => 'new']);
+        app(Role::class)->create([$this->rolesNameAttribute => 'new']);
 
         $this->resetQueryCount();
 
@@ -90,7 +90,7 @@ class CacheTest extends TestCase
     /** @test */
     public function it_flushes_the_cache_when_updating_a_role()
     {
-        $role = app(Role::class)->create(['name' => 'new']);
+        $role = app(Role::class)->create([$this->rolesNameAttribute => 'new']);
 
         $role->name = 'other name';
         $role->save();
@@ -206,7 +206,7 @@ class CacheTest extends TestCase
     public function it_can_reset_the_cache_with_artisan_command()
     {
         Artisan::call('permission:create-permission', ['name' => 'new-permission']);
-        $this->assertCount(1, \Spatie\Permission\Models\Permission::where('name', 'new-permission')->get());
+        $this->assertCount(1, \Spatie\Permission\Models\Permission::where($this->permissionsNameAttribute, 'new-permission')->get());
 
         $this->resetQueryCount();
         // retrieve permissions, and assert that the cache had to be loaded

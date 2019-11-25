@@ -15,9 +15,14 @@ class RoleTest extends TestCase
     {
         parent::setUp();
 
-        Permission::create(['name' => 'other-permission']);
+        Permission::create([
+            $this->permissionsNameAttribute => 'other-permission'
+        ]);
 
-        Permission::create(['name' => 'wrong-guard-permission', 'guard_name' => 'admin']);
+        Permission::create([
+            $this->permissionsNameAttribute => 'wrong-guard-permission',
+            $this->permissionsGuardNameAttribute => 'admin'
+        ]);
     }
 
     /** @test */
@@ -37,8 +42,8 @@ class RoleTest extends TestCase
     {
         $this->expectException(RoleAlreadyExists::class);
 
-        app(Role::class)->create(['name' => 'test-role']);
-        app(Role::class)->create(['name' => 'test-role']);
+        app(Role::class)->create([$this->rolesNameAttribute => 'test-role']);
+        app(Role::class)->create([$this->rolesNameAttribute => 'test-role']);
     }
 
     /** @test */
@@ -222,7 +227,10 @@ class RoleTest extends TestCase
     /** @test */
     public function it_belongs_to_a_guard()
     {
-        $role = app(Role::class)->create(['name' => 'admin', 'guard_name' => 'admin']);
+        $role = app(Role::class)->create([
+            $this->rolesNameAttribute => 'admin',
+            $this->rolesGuardNameAttribute => 'admin'
+        ]);
 
         $this->assertEquals('admin', $role->guard_name);
     }

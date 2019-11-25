@@ -21,9 +21,17 @@ class Permission extends Model implements PermissionContract
 
     protected $guarded = ['id'];
 
+    private $nameAttribute;
+
+    private $guardNameAttribute;
+
     public function __construct(array $attributes = [])
     {
-        $attributes['guard_name'] = $attributes['guard_name'] ?? config('auth.defaults.guard');
+        $this->timestamps = config('permission.models.timestamps');
+        $this->nameAttribute = config('permission.column_names.permissions_name_key');
+        $this->guardNameAttribute = config('permission.column_names.permissions_guard_name_key');
+
+        $attributes[$this->guardNameAttribute] = $attributes[$this->guardNameAttribute] ?? config('auth.defaults.guard');
 
         parent::__construct($attributes);
 
@@ -32,12 +40,18 @@ class Permission extends Model implements PermissionContract
 
     public static function create(array $attributes = [])
     {
-        $attributes['guard_name'] = $attributes['guard_name'] ?? Guard::getDefaultName(static::class);
+        $nameAttribute = config('permission.column_names.permissions_name_key');
+        $guardNameAttribute = config('permission.column_names.permissions_guard_name_key');
 
-        $permission = static::getPermissions(['name' => $attributes['name'], 'guard_name' => $attributes['guard_name']])->first();
+        $attributes[$guardNameAttribute] = $attributes[$guardNameAttribute] ?? Guard::getDefaultName(static::class);
+
+        $permission = static::getPermissions([
+            $nameAttribute => $attributes[$nameAttribute],
+            $guardNameAttribute => $attributes[$guardNameAttribute]
+        ])->first();
 
         if ($permission) {
-            throw PermissionAlreadyExists::create($attributes['name'], $attributes['guard_name']);
+            throw PermissionAlreadyExists::create($attributes[$nameAttribute], $attributes[$guardNameAttribute]);
         }
 
         return static::query()->create($attributes);
@@ -51,8 +65,8 @@ class Permission extends Model implements PermissionContract
         return $this->belongsToMany(
             config('permission.models.role'),
             config('permission.table_names.role_has_permissions'),
-            'permission_id',
-            'role_id'
+            config('permission.column_names.role_has_permissions_permission_id_key'),
+            config('permission.column_names.role_has_permissions_role_id_key')
         );
     }
 
@@ -62,10 +76,10 @@ class Permission extends Model implements PermissionContract
     public function users(): MorphToMany
     {
         return $this->morphedByMany(
-            getModelForGuard($this->attributes['guard_name']),
-            'model',
+            getModelForGuard($this->getGuardNameAttribute()),
+            config('permission.column_names.model_has_permissions_relation_name'),
             config('permission.table_names.model_has_permissions'),
-            'permission_id',
+            config('permission.column_names.model_has_permissions_permission_id_key'),
             config('permission.column_names.model_morph_key')
         );
     }
@@ -82,8 +96,12 @@ class Permission extends Model implements PermissionContract
      */
     public static function findByName(string $name, $guardName = null): PermissionContract
     {
+        $nameAttribute = config('permission.column_names.permissions_name_key');
+        $guardNameAttribute = config('permission.column_names.permissions_guard_name_key');
+
         $guardName = $guardName ?? Guard::getDefaultName(static::class);
-        $permission = static::getPermissions(['name' => $name, 'guard_name' => $guardName])->first();
+
+        $permission = static::getPermissions([$nameAttribute => $name, $guardNameAttribute => $guardName])->first();
         if (! $permission) {
             throw PermissionDoesNotExist::create($name, $guardName);
         }
@@ -103,8 +121,11 @@ class Permission extends Model implements PermissionContract
      */
     public static function findById(int $id, $guardName = null): PermissionContract
     {
+        $guardNameAttribute = config('permission.column_names.permissions_guard_name_key');
+
         $guardName = $guardName ?? Guard::getDefaultName(static::class);
-        $permission = static::getPermissions(['id' => $id, 'guard_name' => $guardName])->first();
+
+        $permission = static::getPermissions(['id' => $id, $guardNameAttribute => $guardName])->first();
 
         if (! $permission) {
             throw PermissionDoesNotExist::withId($id, $guardName);
@@ -123,11 +144,15 @@ class Permission extends Model implements PermissionContract
      */
     public static function findOrCreate(string $name, $guardName = null): PermissionContract
     {
+        $nameAttribute = config('permission.column_names.permissions_name_key');
+        $guardNameAttribute = config('permission.column_names.permissions_guard_name_key');
+
         $guardName = $guardName ?? Guard::getDefaultName(static::class);
-        $permission = static::getPermissions(['name' => $name, 'guard_name' => $guardName])->first();
+
+        $permission = static::getPermissions([$nameAttribute => $name, $guardNameAttribute => $guardName])->first();
 
         if (! $permission) {
-            return static::query()->create(['name' => $name, 'guard_name' => $guardName]);
+            return static::query()->create([$nameAttribute => $name, $guardNameAttribute => $guardName]);
         }
 
         return $permission;
@@ -141,5 +166,45 @@ class Permission extends Model implements PermissionContract
         return app(PermissionRegistrar::class)
             ->setPermissionClass(static::class)
             ->getPermissions($params);
+    }
+
+    /**
+     * Name attribute getter.
+     *
+     * @return string
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->attributes[$this->nameAttribute];
+    }
+
+    /**
+     * Name attribute setter.
+     *
+     * @param $value string
+     */
+    public function setNameAttribute($value): void
+    {
+        $this->attributes[$this->nameAttribute] = $value;
+    }
+
+    /**
+     * Guard name attribute getter.
+     *
+     * @return string
+     */
+    public function getGuardNameAttribute(): string
+    {
+        return $this->attributes[$this->guardNameAttribute];
+    }
+
+    /**
+     * Guard name attribute setter.
+     *
+     * @param $value string
+     */
+    public function setGuardNameAttribute($value): void
+    {
+        $this->attributes[$this->guardNameAttribute] = $value;
     }
 }

@@ -31,9 +31,27 @@ abstract class TestCase extends Orchestra
     /** @var \Spatie\Permission\Models\Permission */
     protected $testAdminPermission;
 
+    /** @var string */
+    protected $permissionsNameAttribute;
+
+    /** @var string */
+    protected $permissionsGuardNameAttribute;
+
+    /** @var string */
+    protected $rolesNameAttribute;
+
+    /** @var string */
+    protected $rolesGuardNameAttribute;
+
     public function setUp(): void
     {
         parent::setUp();
+
+        // Database column names
+        $this->permissionsNameAttribute = config('permission.column_names.permissions_name_key');
+        $this->permissionsGuardNameAttribute = config('permission.column_names.permissions_guard_name_key');
+        $this->rolesNameAttribute = config('permission.column_names.roles_name_key');
+        $this->rolesGuardNameAttribute = config('permission.column_names.roles_guard_name_key');
 
         // Note: this also flushes the cache from within the migration
         $this->setUpDatabase($this->app);
@@ -116,14 +134,20 @@ abstract class TestCase extends Orchestra
 
         User::create(['email' => 'test@user.com']);
         Admin::create(['email' => 'admin@user.com']);
-        $app[Role::class]->create(['name' => 'testRole']);
-        $app[Role::class]->create(['name' => 'testRole2']);
-        $app[Role::class]->create(['name' => 'testAdminRole', 'guard_name' => 'admin']);
-        $app[Permission::class]->create(['name' => 'edit-articles']);
-        $app[Permission::class]->create(['name' => 'edit-news']);
-        $app[Permission::class]->create(['name' => 'edit-blog']);
-        $app[Permission::class]->create(['name' => 'admin-permission', 'guard_name' => 'admin']);
-        $app[Permission::class]->create(['name' => 'Edit News']);
+        $app[Role::class]->create([$this->rolesNameAttribute => 'testRole']);
+        $app[Role::class]->create([$this->rolesNameAttribute => 'testRole2']);
+        $app[Role::class]->create([
+            $this->rolesNameAttribute => 'testAdminRole',
+            $this->rolesGuardNameAttribute => 'admin'
+        ]);
+        $app[Permission::class]->create([$this->permissionsNameAttribute => 'edit-articles']);
+        $app[Permission::class]->create([$this->permissionsNameAttribute => 'edit-news']);
+        $app[Permission::class]->create([$this->permissionsNameAttribute => 'edit-blog']);
+        $app[Permission::class]->create([
+            $this->permissionsNameAttribute => 'admin-permission',
+            $this->permissionsGuardNameAttribute => 'admin'
+        ]);
+        $app[Permission::class]->create([$this->permissionsNameAttribute => 'Edit News']);
     }
 
     /**

@@ -13,8 +13,8 @@ class CommandTest extends TestCase
     {
         Artisan::call('permission:create-role', ['name' => 'new-role']);
 
-        $this->assertCount(1, Role::where('name', 'new-role')->get());
-        $this->assertCount(0, Role::where('name', 'new-role')->first()->permissions);
+        $this->assertCount(1, Role::where($this->rolesNameAttribute, 'new-role')->get());
+        $this->assertCount(0, Role::where($this->rolesNameAttribute, 'new-role')->first()->permissions);
     }
 
     /** @test */
@@ -25,8 +25,8 @@ class CommandTest extends TestCase
             'guard' => 'api',
         ]);
 
-        $this->assertCount(1, Role::where('name', 'new-role')
-            ->where('guard_name', 'api')
+        $this->assertCount(1, Role::where($this->rolesNameAttribute, 'new-role')
+            ->where($this->rolesGuardNameAttribute, 'api')
             ->get());
     }
 
@@ -35,7 +35,7 @@ class CommandTest extends TestCase
     {
         Artisan::call('permission:create-permission', ['name' => 'new-permission']);
 
-        $this->assertCount(1, Permission::where('name', 'new-permission')->get());
+        $this->assertCount(1, Permission::where($this->permissionsNameAttribute, 'new-permission')->get());
     }
 
     /** @test */
@@ -46,8 +46,8 @@ class CommandTest extends TestCase
             'guard' => 'api',
         ]);
 
-        $this->assertCount(1, Permission::where('name', 'new-permission')
-            ->where('guard_name', 'api')
+        $this->assertCount(1, Permission::where($this->permissionsNameAttribute, 'new-permission')
+            ->where($this->permissionsGuardNameAttribute, 'api')
             ->get());
     }
 
@@ -59,7 +59,7 @@ class CommandTest extends TestCase
             'permissions' => 'first permission | second permission',
         ]);
 
-        $role = Role::where('name', 'new-role')->first();
+        $role = Role::where($this->rolesNameAttribute, 'new-role')->first();
 
         $this->assertTrue($role->hasPermissionTo('first permission'));
         $this->assertTrue($role->hasPermissionTo('second permission'));
@@ -71,8 +71,8 @@ class CommandTest extends TestCase
         Artisan::call('permission:create-role', ['name' => 'new-role']);
         Artisan::call('permission:create-role', ['name' => 'new-role']);
 
-        $this->assertCount(1, Role::where('name', 'new-role')->get());
-        $this->assertCount(0, Role::where('name', 'new-role')->first()->permissions);
+        $this->assertCount(1, Role::where($this->rolesNameAttribute, 'new-role')->get());
+        $this->assertCount(0, Role::where($this->rolesNameAttribute, 'new-role')->first()->permissions);
     }
 
     /** @test */
@@ -81,7 +81,7 @@ class CommandTest extends TestCase
         Artisan::call('permission:create-permission', ['name' => 'new-permission']);
         Artisan::call('permission:create-permission', ['name' => 'new-permission']);
 
-        $this->assertCount(1, Permission::where('name', 'new-permission')->get());
+        $this->assertCount(1, Permission::where($this->permissionsNameAttribute, 'new-permission')->get());
     }
 
     /** @test */

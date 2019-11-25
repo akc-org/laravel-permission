@@ -3,6 +3,8 @@
 namespace Spatie\Permission;
 
 use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class Guard
 {

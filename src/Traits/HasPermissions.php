@@ -42,10 +42,10 @@ trait HasPermissions
     {
         return $this->morphToMany(
             config('permission.models.permission'),
-            'model',
+            config('permission.column_names.model_has_permissions_relation_name'),
             config('permission.table_names.model_has_permissions'),
             config('permission.column_names.model_morph_key'),
-            'permission_id'
+            config('permission.column_names.model_has_permissions_permission_id_key')
         );
     }
 
@@ -366,7 +366,7 @@ trait HasPermissions
 
     public function getPermissionNames(): Collection
     {
-        return $this->permissions->pluck('name');
+        return $this->permissions->pluck(config('permission.column_names.permissions_name_key'));
     }
 
     /**
@@ -388,8 +388,8 @@ trait HasPermissions
 
         if (is_array($permissions)) {
             return $permissionClass
-                ->whereIn('name', $permissions)
-                ->whereIn('guard_name', $this->getGuardNames())
+                ->whereIn(config('permission.column_names.permissions_name_key'), $permissions)
+                ->whereIn(config('permission.column_names.permissions_guard_name_key'), $this->getGuardNames())
                 ->get();
         }
 

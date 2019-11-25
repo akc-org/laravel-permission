@@ -12,14 +12,17 @@ class PermissionTest extends TestCase
     {
         $this->expectException(PermissionAlreadyExists::class);
 
-        app(Permission::class)->create(['name' => 'test-permission']);
-        app(Permission::class)->create(['name' => 'test-permission']);
+        app(Permission::class)->create([$this->permissionsNameAttribute => 'test-permission']);
+        app(Permission::class)->create([$this->permissionsNameAttribute => 'test-permission']);
     }
 
     /** @test */
     public function it_belongs_to_a_guard()
     {
-        $permission = app(Permission::class)->create(['name' => 'can-edit', 'guard_name' => 'admin']);
+        $permission = app(Permission::class)->create([
+            $this->permissionsNameAttribute => 'can-edit',
+            $this->permissionsGuardNameAttribute => 'admin'
+        ]);
 
         $this->assertEquals('admin', $permission->guard_name);
     }
